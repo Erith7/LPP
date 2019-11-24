@@ -1,0 +1,48 @@
+#!/bin/csh
+
+set INDIR_at=/media/erith/Disco4TB/Linux/Output/Mosaico2014LPP/RefleCal/
+set OUTDIR_RR=/media/erith/Disco4TB/Linux/Output/Mosaico2014LPP/CloudMasked/
+set LPP_path=/home/erith/Documentos/LPP
+set Exec_path=$LPP_path'/'src/exe
+set Source_path=$LPP_path'/'src/cppfiles
+set Cshell_path=$LPP_path'/'src/csh
+
+if (! -d $OUTDIR_RR) mkdir -p $OUTDIR_RR
+
+cd $INDIR_at
+set RowPathList = `ls -1`
+foreach RowPathId ( $RowPathList )  # Making the PathRow Files List
+	echo $RowPathId
+	mkdir $OUTDIR_RR$RowPathId
+	set pathrow = $RowPathId'/'  # Defining the PathRow Directory
+	cd $RowPathId               # Getting in each PathRow File  
+	set FileInRowPathId = `ls -1`         #Listing the Landsat scenes inside the PathRow
+	foreach FileRPId ( $FileInRowPathId )
+		set Band_Name = $FileRPId      # Taking the Image Name
+		set ImageDir = $FileRPId'/'	# Defining the Image Directory	
+		echo $Band_Name	
+		cd $FileRPId                 #Getting in each image
+
+		echo 'It is time to built the cloud mask from the BQA image'
+		
+		oft-calc -ot Float32 $Band_Name'_BQA.TIF' 'Cloudmask.TIF'<$Cshell_path'/'make_mask.eq
+		
+		echo 'The Cloud Mask have been built!'
+		echo 'Getting in' $INDIR_at$pathrow$ImageDir
+
+		cd $INDIR_at$pathrow$ImageDir
+
+		oft-calc -ot Float32 -um Cloudmask.TIF $Band_Name'_warped.TIF' $OUTDIR_RR$pathrow$Band_Name'_564.TIF'<$Cshell_path'/'masking.eq
+
+		echo 'Erasing Cloudmask.TIF'
+		rm Cloudmask.TIF *.eq 
+		cd $OUTDIR_RR$pathrow
+		rm *.eq
+		rm *.IMD
+		#rm Cloudmask.TIF
+		rm *_BQA.TIF
+		cd $INDIR_at$pathrow
+	end
+	cd $INDIR_at
+end 
+exit

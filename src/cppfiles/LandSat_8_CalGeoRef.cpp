@@ -1,0 +1,197 @@
+/*=====================================================================================================================================================
+|                                                               LandSat_8_CalGeoRef.cpp
+|======================================================================================================================================================
+|Author: Erith Alexander Muñoz, erith7@gmail.com
+|Organization: FAO-Ecuador
+|version:2015.1.0
+|Update: 16/07/2015
+|Description: Automation of the Radiance Conversion from DN for LandSat 8 Imagery by reading the MKL file.
+|Compilation Comand: g++ -std=c++11 -o LandSat_8_CalGeoRef.exe LandSat_8_CalGeoRef.cpp $(pkg-config opencv --libs)
+|                   -I/usr/local/include/opencv2/ -I/usr/local/include/opencv/
+|
+|
+======================================================================================================================================================*/
+#include </usr/local/include/opencv2/core/core.hpp>
+#include </usr/local/include/opencv2/highgui/highgui.hpp>
+#include <iostream>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <string>
+#include <cstring>
+#include </usr/local/include/opencv2/core/types_c.h>
+#include </usr/local/include/opencv2/core/core_c.h>
+#include <math.h>
+#include <sstream>
+#include <fstream>
+#include <vector>
+
+#define PI 3.14159265
+ 
+using namespace cv;
+using namespace std;
+
+
+
+ 
+int main (int argc, char *argv[])
+{
+
+
+  if (argc != 3)
+    cout << "Uso: ./LandSat_8_CalGeoRef.exe metadato_txt nombre_txt_output\n";
+  else
+    {
+
+    //char ruta_directorio[200]=argv[1];
+
+    char inputImagesPath0[200];
+    char *t0=inputImagesPath0;
+    t0=strcpy(t0,argv[1]);
+    puts(inputImagesPath0);
+
+    char Outputtxt[200];
+    char *o8=Outputtxt;
+    o8=strcpy(o8,argv[2]);
+    puts(Outputtxt);
+
+    ifstream Metadato;
+    ofstream parameters_file;
+    Metadato.open(inputImagesPath0);
+
+ 	//char output[100];
+ 	if (Metadato.is_open()) 	
+		{
+    cout<<"Sigo leyendo"<<endl;
+		string line="";
+		getline(Metadato,line);
+		while(!Metadato.eof())
+		{	getline(Metadato,line);
+            stringstream strstr(line);
+			string angleRead="";
+			size_t pch1;
+            pch1=line.find("CORNER_UL_LAT_PRODUCT = ");
+            if(pch1 != string::npos)
+            {
+                int counter=pch1+24;
+                angleRead=line.substr(counter,7);
+
+        parameters_file.open(Outputtxt);
+        parameters_file<<angleRead;
+        parameters_file.close();
+
+            }
+            string MultiBand2="";
+            size_t pch2;
+            pch2=line.find("CORNER_UL_LON_PRODUCT = ");
+            if(pch2 != string::npos)
+            {
+            int counter=pch2+24;
+            MultiBand2=line.substr(counter,9);
+            parameters_file.open(Outputtxt,fstream::in | fstream::out | fstream::app);
+            parameters_file<<":"<<MultiBand2;
+            parameters_file.close();
+            }
+            string AddBand2="";
+            size_t pch2A;
+            pch2A=line.find("CORNER_UR_LAT_PRODUCT = ");
+            if(pch2A != string::npos)
+            {
+            int counter=pch2A+24;
+            AddBand2=line.substr(counter,7);
+            parameters_file.open(Outputtxt,fstream::in | fstream::out | fstream::app);
+            parameters_file<<":"<<AddBand2;
+            parameters_file.close();
+            }
+            string MultiBand3="";
+            size_t pch3;
+            pch3=line.find("CORNER_UR_LON_PRODUCT = ");
+            if(pch3 != string::npos)
+            {
+            int counter=pch3+24;
+            MultiBand3=line.substr(counter,9);
+            parameters_file.open(Outputtxt,fstream::in | fstream::out | fstream::app);
+            parameters_file<<":"<<MultiBand3;
+            parameters_file.close();
+            }
+            string AddBand3="";
+            size_t pch3A;
+            pch3A=line.find("CORNER_LL_LAT_PRODUCT = ");
+            if(pch3A != string::npos)
+            {
+            int counter=pch3A+24;
+            AddBand3=line.substr(counter,8);
+            parameters_file.open(Outputtxt,fstream::in | fstream::out | fstream::app);
+            parameters_file<<":"<<AddBand3;
+            parameters_file.close();
+            }
+            string Multiband4="";
+            size_t pch4;
+            pch4=line.find("CORNER_LL_LON_PRODUCT = ");
+            if(pch4 != string::npos)
+            {
+            int counter=pch4+24;
+            Multiband4=line.substr(counter,9);
+            parameters_file.open(Outputtxt,fstream::in | fstream::out | fstream::app);
+            parameters_file<<":"<<Multiband4;
+            parameters_file.close();
+            }
+            string Addband4="";
+            size_t pch4A;
+            pch4A=line.find("CORNER_LR_LAT_PRODUCT = ");
+            if(pch4A != string::npos)
+            {
+            int counter=pch4A+24;
+            Addband4=line.substr(counter,8);
+            parameters_file.open(Outputtxt,fstream::in | fstream::out | fstream::app);
+            parameters_file<<":"<<Addband4;
+            parameters_file.close();
+            }
+            string Multiband5="";
+            size_t pch5;
+            pch5=line.find("CORNER_LR_LON_PRODUCT = ");
+            if(pch5 != string::npos)
+            {
+            int counter=pch5+24;
+            Multiband5=line.substr(counter,9);
+            parameters_file.open(Outputtxt,fstream::in | fstream::out | fstream::app);
+            parameters_file<<":"<<Multiband5;
+            parameters_file.close();
+            }
+            string Addband5="";
+            size_t pch5A;
+            pch5A=line.find("REFLECTIVE_LINES = ");
+            if(pch5A != string::npos)
+            {
+            int counter=pch5A+19;
+            Addband5=line.substr(counter,4);
+            parameters_file.open(Outputtxt,fstream::in | fstream::out | fstream::app);
+            parameters_file<<":"<<Addband5;
+            parameters_file.close();
+            }
+            string Multiband6="";
+            size_t pch6;
+            pch6=line.find("REFLECTIVE_SAMPLES = ");
+            if(pch6 != string::npos)
+            {
+            int counter=pch6+21;
+            Multiband6=line.substr(counter,4);
+            parameters_file.open(Outputtxt,fstream::in | fstream::out | fstream::app);
+            parameters_file<<":"<<Multiband6;
+            parameters_file.close();
+            }
+
+        }
+
+        }
+	
+
+	Metadato.close();
+
+                    // Wait for a keystroke in the window
+
+
+    }
+
+    return 0;
+}

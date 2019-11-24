@@ -1,0 +1,20 @@
+CFLAGS = -std=c++11
+DEFINES = -DDEBUGGA
+INCLUDES = $(pkg-config opencv --libs) -I/usr/local/include/opencv2/ -I/usr/local/include/opencv/
+LIBS = 
+EXAMPLE = LandSat_8_Radiance_Cal_16b.o
+CC=g++
+path = ../cppfiles/
+.cc.o:
+	$(CC) -c $(CFLAGS) $(DEFINES) $(INCLUDES) $<
+
+all::	LandSat_8_Radiance_Cal_16b
+
+#gnuplot_i.o:	gnuplot_i.hpp
+example.o:	$(path)LandSat_8_Radiance_Cal_16b.cpp
+
+example: $(EXAMPLE)
+	$(CC) -o $@ $(CFLAGS) $(path)$(EXAMPLE) $(LIBS)
+
+clean: 
+	rm -f $(EXAMPLE) LandSat_8_Radiance_Cal_16b

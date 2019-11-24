@@ -1,0 +1,275 @@
+/*=====================================================================================================================================================
+|                                                               CompositoMaker.cpp
+|======================================================================================================================================================
+|Author: Erith Alexander Muñoz, erith7@gmail.com
+|Organization: FAO-Ecuador
+|version:2015.1.0
+|Update: 16/07/2015
+|Description: Automation of the Radiance Conversion from DN for LandSat 8 Imagery by reading the MKL file.
+|Compilation Comand: g++ -std=c++11 -o CompositoMaker.exe CompositoMaker.cpp $(pkg-config opencv --libs)
+|                   -I/usr/local/include/opencv2/ -I/usr/local/include/opencv/
+|
+|
+======================================================================================================================================================*/
+#include </usr/local/include/opencv2/core/core.hpp>
+#include </usr/local/include/opencv2/highgui/highgui.hpp>
+#include <iostream>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <string>
+#include <cstring>
+#include </usr/local/include/opencv2/core/types_c.h>
+#include </usr/local/include/opencv2/core/core_c.h>
+#include <math.h>
+#include <sstream>
+#include <fstream>
+#include <vector>
+#include <omp.h>
+
+#define PI 3.14159265
+ 
+using namespace cv;
+using namespace std;
+
+
+
+ 
+int main (int argc, char *argv[])
+{
+
+
+  if (argc != 7)
+   { cout << "Usage: ./CompositoMaker.exe MasterPath Image1 Image2 ndvi1 ndvi2 OutputName\n";
+   }
+  else
+    {
+	omp_set_dynamic(0);     // Explicitly disable dynamic teams
+	omp_set_num_threads(8); // Use 4 threads for all consecutive parallel regions
+
+    //char ruta_directorio[200]=argv[1];
+
+    char inputImagesPath0[200];
+    char inputImagesPath1[200];
+    char inputImagesPath2[200];
+    char inputImagesPath3[200];
+
+    char *t0=inputImagesPath0;
+    char *t1=inputImagesPath1;
+    char *t2=inputImagesPath2;
+    char *t3=inputImagesPath3;
+
+    char OutputImagesB2[200];
+
+    char *o2=OutputImagesB2;
+
+    o2=strcpy(o2,argv[1]);
+    o2=strcat(o2,argv[6]);
+     cout<<"Output name:     "<<endl;
+    puts(OutputImagesB2);
+
+    t0=strcpy(t0,argv[1]);
+    t1=strcpy(t1,argv[1]);
+    t2=strcpy(t2,argv[1]);
+    t3=strcpy(t3,argv[1]);
+
+
+    t0=strcat(t0,argv[2]);
+    t1=strcat(t1,argv[3]);
+    t2=strcat(t2,argv[4]);
+    t3=strcat(t3,argv[5]);
+     
+    cout<<"Inputs files:     "<<endl;
+    puts(inputImagesPath0);
+    puts(inputImagesPath1);
+    puts(inputImagesPath2);
+    puts(inputImagesPath3);
+        
+	Mat image1;
+	Mat image2;
+	Mat ndvi1;
+	Mat ndvi2;
+	
+	image1= imread(inputImagesPath0, IMREAD_ANYDEPTH); 
+	image2= imread(inputImagesPath1, IMREAD_ANYDEPTH);
+	ndvi1= imread(inputImagesPath2, IMREAD_ANYDEPTH); 
+	ndvi2= imread(inputImagesPath3, IMREAD_ANYDEPTH);
+
+       if(! image1.data )  // Check for invalid input
+       {
+              cout <<  "Image1 was not read" << std::endl ;
+              return -1;
+       }
+
+       if(! image2.data )  // Check for invalid input
+       {
+              cout <<  "Image2 was not read" << std::endl ;
+              return -1;
+       }
+
+       if(! ndvi1.data )  // Check for invalid input
+       {
+              cout <<  "ndvi1 was not read" << std::endl ;
+              return -1;
+       }
+
+       if(! ndvi2.data )  // Check for invalid input
+       {
+              cout <<  "ndvi2 was not read" << std::endl ;
+              return -1;
+       }
+
+        int filas1=0;
+        int columnas1=0;
+        int filas2=0;
+        int columnas2=0;
+        int filas1ndvi=0;
+        int columnas1ndvi=0;
+        int filas2ndvi=0;
+        int columnas2ndvi=0;
+
+
+    filas1=image1.size().height;
+	cout<<"Filas 1:  "<<filas1<<endl;
+    columnas1=image1.size().width;
+	cout<<"Columnas 1:  "<<columnas1<<endl;
+    filas2=image2.size().height;
+	cout<<"Filas 2:  "<<filas2<<endl;
+    columnas2=image2.size().width;
+	cout<<"Columnas 2:  "<<columnas2<<endl;
+	if( filas1 != filas2 ){ throw std::runtime_error("Number of files are different between the images. Images must be co-registered and resized... canceled process"); }
+	if( columnas1 != columnas2 ){ throw std::runtime_error("Number of columns are different between the images. Images must be co-registered and resized... canceled process"); }
+
+
+    filas1ndvi=ndvi1.size().height;
+	cout<<"Filas ndvi 1:  "<<filas1ndvi<<endl;
+    columnas1ndvi=ndvi1.size().width;
+	cout<<"Columnas ndvi 1:  "<<columnas1ndvi<<endl;
+    filas2ndvi=ndvi2.size().height;
+	cout<<"Filas ndvi 2:  "<<filas2ndvi<<endl;
+    columnas2ndvi=ndvi2.size().width;
+	cout<<"Columnas ndvi 2:  "<<columnas2ndvi<<endl;
+	if( filas1ndvi != filas2ndvi ){ throw std::runtime_error("Number of files are different between the ndvis. It must be co-registered and resized... canceled process"); }
+	if( columnas1ndvi != columnas2ndvi ){ throw std::runtime_error("Number of columns are different between the ndvis. It must be co-registered and resized... canceled process"); }
+
+
+    Mat image11(filas1,columnas1,CV_64F);
+    image11= imread(inputImagesPath0, IMREAD_ANYDEPTH);
+	image1.release();
+	Mat image111;
+    image11.convertTo(image111,CV_64F);
+	image11.release();
+    cout<<"El tipo de Mat para image1 es:   "<<image111.type()<<endl;
+	if( image111.type() != 6 ){ throw std::runtime_error("Image1 type must be CV_64F"); }
+
+    Mat image22(filas1,columnas1,CV_64F);
+    image22= imread(inputImagesPath1, IMREAD_ANYDEPTH);
+	image2.release();
+	Mat image222;
+    image22.convertTo(image222, CV_64F);
+	image22.release();
+    cout<<"El tipo de Mat para image2 es:   "<<image222.type()<<endl;
+	if( image222.type() != 6 ){ throw std::runtime_error("Image1 type must be CV_64F"); }
+
+    Mat ndvi11(filas1,columnas1,CV_64F);
+    ndvi11= imread(inputImagesPath2, IMREAD_ANYDEPTH);
+	ndvi1.release();
+	Mat ndvi111;
+    ndvi11.convertTo(ndvi111,CV_64F);
+	ndvi11.release();
+    cout<<"El tipo de Mat para ndvi1 es:   "<<ndvi111.type()<<endl;
+	if( ndvi111.type() != 6 ){ throw std::runtime_error("ndvi1 type must be CV_64F"); }
+
+
+    Mat ndvi22(filas1,columnas1,CV_64F);
+    ndvi22= imread(inputImagesPath3, IMREAD_ANYDEPTH);
+	ndvi2.release();
+	Mat ndvi222;
+    ndvi22.convertTo(ndvi222,CV_64F);
+	ndvi22.release();
+    cout<<"El tipo de Mat para ndvi2 es:   "<<ndvi222.type()<<endl;
+	if( ndvi222.type() != 6 ){ throw std::runtime_error("ndvi2 type must be CV_64F"); }
+	//double sum;
+
+	Mat composito(filas1,columnas1,CV_64F);
+
+	#pragma omp parallel 
+	{	
+
+	cout<<"threads="<<omp_get_num_threads()<<endl;
+		#pragma omp for
+		for(int i = 0; i < composito.rows; i++)
+			{
+ 			/*const double* Mi = composito.ptr<double>(i);
+			const double* N1 = ndvi11.ptr<double>(i);
+			const double* N2 = ndvi22.ptr<double>(i);
+			const double* I1 = image11.ptr<double>(i);
+			const double* I2 = image22.ptr<double>(i);
+
+ 		  	 	for(int j = 0; j < composito.cols; j++)
+				if(N1[j] >= N2[j])	
+					{Mi[j] = I1[j];}
+                        	else
+				{Mi[j ]= I2[j];}*/
+		
+				for(int j = 0; j < composito.cols; j++)
+				{				
+				double pri1 = ndvi111.at<double>(i,j);
+				if (pri1 != pri1){pri1=0;}
+				double pri2 = ndvi222.at<double>(i,j);
+				if (pri2 != pri2){pri2=0;}
+				//cout<< "================================= "<<endl;
+				//cout<< "i    =" << i << "====>"<<"nvdi1: "<<  pri1 << "============"<< "j     =" << j <<"====>"<<" ndvi2  :"<<pri2  <<endl;
+				if (pri1 >= pri2)
+				{composito.at<double>(i,j) = image111.at<double>(i,j);}
+				else
+				{composito.at<double>(i,j) = image222.at<double>(i,j);}
+
+				
+				cout<< "ndvi1    = "<<pri1<<endl;
+				cout<< "ndvi2    = "<<pri2<<endl;
+				cout<< "image1    = "<<image111.at<double>(i,j)<<endl;
+				cout<< "image2    = "<<image222.at<double>(i,j)<<endl;
+				cout<< "Composito    = "<<composito.at<double>(i,j)<<endl;
+				}
+
+				
+			}
+
+	}
+
+	ndvi111.release();
+	ndvi222.release();
+	image111.release();
+	image222.release();
+
+	double minVal77; 
+	double maxVal77; 
+	Point minLoc77; 
+	Point maxLoc77;
+	minMaxLoc( composito, &minVal77, &maxVal77, &minLoc77, &maxLoc77 );
+	composito=65536*(composito-minVal77)/(maxVal77-minVal77);
+    imwrite(OutputImagesB2,composito);// it will store the image in name "result.jpg"
+	composito.release();
+
+                //SAVE image
+
+
+
+
+
+
+
+         waitKey(0);
+            
+
+
+
+
+
+                     // Wait for a keystroke in the window
+       return 0;
+
+}
+
+}
